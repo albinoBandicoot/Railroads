@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 import java.awt.*;
-public class ConcatNode extends Node {
+public class ConcatNode extends InternalNode {
 
 	public ArrayList<Node> list;
 	private ArrayList<Point> child_offsets;
@@ -22,17 +22,31 @@ public class ConcatNode extends Node {
 	}
 
 	public boolean doSelection (Point p) {
+		is_selected = false;	// you can't select a concatNode
 		boolean found_child = false;
 		for (Node n : list) {
 			found_child |= n.doSelection (p);
 		}
-		if (globounds.contains (p)) {
-			is_selected = !found_child;
-		} else {
-			is_selected = false;
+		return found_child;
+	}
+	
+	public void setSelection (Node s) {
+		super.setSelection (s);
+		for (Node n : list) {
+			n.setSelection (s);
 		}
-		if (is_selected) Railroad.rp.selection = this;
-		return is_selected || found_child;
+	}
+
+	public Node getPreviousNode (Node sel) {
+		int idx = list.indexOf (sel);
+		if (idx == -1 || idx == 0) return sel;
+		return list.get (idx - 1);
+	}
+
+	public Node getNextNode (Node sel) {
+		int idx = list.indexOf (sel);
+		if (idx == -1 || idx == list.size() - 1) return sel;
+		return list.get (idx + 1);
 	}
 
 	public void clearName () {
@@ -84,6 +98,10 @@ public class ConcatNode extends Node {
 		DrawUtils.selected &= !is_selected;
 	}
 
+	public boolean isEffectivelyEmpty () {
+		return list.size() == 1 && list.get(0) instanceof Dummy;
+	}
+
 	public void replace (Node ch, Node n) {
 		for (int i=0; i < list.size(); i++) {
 			if (ch == list.get(i)) {
@@ -91,7 +109,29 @@ public class ConcatNode extends Node {
 				n.parent = this;
 			}
 		}
-		if (! (list.get (list.size()-1) instanceof Dummy)) {
+		flatten();
+	}
+
+	public void insert (Node sel, Node rep, int action) {
+		int idx = list.indexOf (sel);
+		rep.parent = this;
+		if (action == RailroadPanel.INSERT_BEFORE) {
+			list.add (idx, rep);
+		} else {
+			list.add (idx+1, rep);
+		}
+		flatten();
+	}
+
+	public void remove (Node s) {
+		list.remove (s);
+		if (list.isEmpty()) {
+			// usually we'll insert a dummy; however, if our parent is an AltNode, we want to delete our branch.
+			if (parent instanceof AltNode) {	// if parent is null, this will evaluate to false
+				((AltNode) parent).removeBranch (this);
+				return;
+			}
+
 			Dummy d = new Dummy();
 			d.parent = this;
 			list.add (d);

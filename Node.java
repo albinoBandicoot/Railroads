@@ -24,6 +24,9 @@ public abstract class Node {
 	public abstract void paint (Graphics2D g, Point pipein);
 	
 	public abstract boolean  doSelection (Point p);	// update the is_selected flags to reflect a click on point p
+	public void  setSelection (Node s) {
+		is_selected = this == s;
+	}
 	public abstract void	 replace (Node ch, Node n);	// replace child node ch with node n
 
 	public abstract void	 clearName ();

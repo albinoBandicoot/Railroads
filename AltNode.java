@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 import java.awt.*;
-public class AltNode extends Node {
+public class AltNode extends InternalNode {
 
 	public ArrayList<Node> options;
 
@@ -37,6 +37,32 @@ public class AltNode extends Node {
 		}
 		if (is_selected) Railroad.rp.selection = this;
 		return is_selected || found_child;
+	}
+
+	public void setSelection (Node s) {
+		super.setSelection (s);
+		for (Node n : options) {
+			n.setSelection (s);
+		}
+	}
+
+	public Node getPreviousNode (Node sel) {
+		int idx = options.indexOf (sel);
+		if (idx == -1 || idx == 0) return sel;
+		return options.get (idx - 1);
+	}
+
+	public Node getNextNode (Node sel) {
+		int idx = options.indexOf (sel);
+		if (idx == -1 || idx == options.size() - 1) return sel;
+		return options.get (idx + 1);
+	}
+
+	public void removeBranch (Node s) {
+		options.remove (s);
+		if (options.size() == 1) {
+			// not much of an alternation if there's one option, is it?
+		}
 	}
 
 	public void clearName () {
@@ -83,6 +109,19 @@ public class AltNode extends Node {
 		}
 
 		Rect b = Rect.boundingBox (chbounds);
+		for (Node ch : options) {
+			if (ch instanceof Dummy) {
+				ch.bounds.size.x = b.size.x;
+			} else if (ch instanceof ConcatNode) {
+				ConcatNode c = (ConcatNode) ch;
+				if (c.isEffectivelyEmpty()) {
+					System.out.println ("Modifying dummy size to " + b.size.x);
+					c.list.get(0).bounds.size.x = b.size.x;
+					c.bounds.size.x = b.size.x;
+				}
+			}
+		}
+
 		collectorX = b.maxCoords().x + Settings.CURVE_RADIUS;
 
 		bounds = new Rect (new Point (0, b.tl.y), new Point (collectorX + Settings.CURVE_RADIUS + Settings.CONNECTOR_LENGTH, b.size.y));

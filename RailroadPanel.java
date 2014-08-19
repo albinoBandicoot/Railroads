@@ -13,12 +13,12 @@ public class RailroadPanel extends JPanel implements MouseListener, KeyListener,
 	public RailroadPanel () {
 		nonts = new ArrayList<Nonterminal>();
 		Nonterminal start = new Nonterminal ("START");
-		start.definition = new Dummy();
+		start.definition = new ConcatNode (start, new Dummy());
 		nonts.add (start);
 		
 		selection = null;
-		scrollx = 40;
-		scrolly = 30;
+		scrollx = 0;
+		scrolly = 0;
 	}
 
 	public void addNonterminal (String name) {
@@ -99,8 +99,41 @@ public class RailroadPanel extends JPanel implements MouseListener, KeyListener,
 	private int state = 0;	// 0 is normal state, 1 is waiting for second letter of replacement command
 							// 2 is waiting for terminal name, 3 is waiting for nonterminal name for replacement 
 							// 4 is waiting for new nonterimnal name
+							// 5 is waiting for second letter of insert command (before/after selection)
+	private int action = REPLACE;
 	private StringBuffer sb = new StringBuffer();
 	private char replace_type;
+
+	/* Action constants */
+	public static final int REPLACE = 0;
+	public static final int INSERT_BEFORE = 1;
+	public static final int INSERT_AFTER = 2;
+
+	public void setSelection (Node n) {
+		for (Nonterminal nt : nonts) {
+			nt.definition.setSelection (n);
+		}
+		selection = n;
+		repaint();
+	}
+
+	public void doAction (Node n) {
+		switch (action) {
+			case REPLACE:
+				replaceSelection (n);	break;
+			case INSERT_BEFORE:
+			case INSERT_AFTER:
+				doInsertion (n);	break;
+		}
+	}
+
+	public void deleteSelection () {
+		if (selection == null) return;
+		if (selection.parent != null && selection.parent instanceof ConcatNode) {
+			((ConcatNode) selection.parent).remove (selection);
+			repaint();
+		}
+	}
 
 	public void replaceSelection (Node n) {
 		System.out.println ("Replacing selection (" + selection + ") with " + n);
@@ -137,21 +170,65 @@ public class RailroadPanel extends JPanel implements MouseListener, KeyListener,
 		}
 	}
 
+	public void doInsertion (Node n) {
+		if (selection == null) return;
+		if (selection.parent == null) {
+			System.out.println ("ERROR: trying to do insertion with a selection with a null parent.");
+		}
+		if (selection.parent instanceof ConcatNode) {
+			((ConcatNode) selection.parent).insert (selection, n, action);
+			repaint();
+		} else {
+			System.out.println ("ERROR: selection parent is not a ConcatNode.");
+		}
+	}
+
 	public void keyPressed (KeyEvent ke) {
 		char c = ke.getKeyChar();
-		System.out.println ("Got key pressed; char = " + c + "; key code is " + ke.getKeyCode());
+		int code = ke.getKeyCode();
+		if (code == KeyEvent.VK_UP) {
+			if (selection.parent instanceof ConcatNode) {
+				if (selection.parent.parent instanceof InternalNode) {
+					setSelection (((InternalNode) selection.parent.parent).getPreviousNode (selection));
+				}
+			}
+		} else if (code == KeyEvent.VK_DOWN) {
+			if (selection.parent instanceof ConcatNode) {
+				if (selection.parent.parent instanceof InternalNode) {
+					setSelection (((InternalNode) selection.parent.parent).getNextNode (selection));
+				}
+			}
+		} else if (code == KeyEvent.VK_LEFT) {
+			if (selection.parent instanceof ConcatNode) {
+				setSelection (((ConcatNode) selection.parent).getPreviousNode (selection));
+			}
+		} else if (code == KeyEvent.VK_RIGHT) {
+			if (selection.parent instanceof ConcatNode) {
+				setSelection (((ConcatNode) selection.parent).getNextNode (selection));
+			}
+		} else if (state == 0 && c == 'p') {	// select parent node
+			if (selection.parent != null) {
+				if (selection.parent instanceof ConcatNode) {	// we can't have that! (And in fact, this should be true all the time)
+					if (selection.parent.parent != null) {
+						setSelection (selection.parent.parent);
+					}
+				}
+			}
+		}
 		if (state == 1) {
 			state = 0;
 			replace_type = c;
 			switch (c) {
 				case 'a':
-					replaceSelection (new AltNode (null, new Dummy(), new Dummy()));	break;
+					doAction (new AltNode (null, new ConcatNode (null, new Dummy()), new ConcatNode (null, new Dummy())));	break;
 				case 'c':
-					replaceSelection (new ConcatNode (null, new Dummy()));	break;
+					doAction (new ConcatNode (null, new Dummy()));	break;
+				/*
 				case 'd':
-					replaceSelection (new Dummy());	break;
+					doAction (new Dummy());	break;
+				*/
 				case 'l':
-					replaceSelection (new LoopNode (null, new Dummy(), new Dummy()));	break;
+					doAction (new LoopNode (null, new ConcatNode (null, new Dummy()), new ConcatNode (null, new Dummy())));	break;
 				case 'n':
 					sb = new StringBuffer();
 					state = 3;	break;
@@ -169,7 +246,7 @@ public class RailroadPanel extends JPanel implements MouseListener, KeyListener,
 				} else {
 					n = new LeafNode (new Nonterminal (sb.toString()));
 				}
-				replaceSelection (n);
+				doAction (n);
 				state = 0;
 			} else {
 				sb.append (c);
@@ -185,12 +262,24 @@ public class RailroadPanel extends JPanel implements MouseListener, KeyListener,
 			} else {
 				sb.append(c);
 			}
+		} else if (state == 5) {
+			if (c == 'a') {	// insert after
+				action = INSERT_AFTER;
+			} else if (c == 'b') {	// insert before
+				action = INSERT_BEFORE;
+			} else {
+				state = 0;	// abort
+			}
+			state = 1;
 		} else {
 			if (c == 'n') {	// new nonterminal
 				sb = new StringBuffer();
 				state = 4;
 			} else if (c == 'r') {	// replace selection
 				state = 1;
+				action = REPLACE;
+			} else if (c == 'i') {
+				state = 5;
 			} else if (c == 'b') {	// add branch to selected alternation
 				if (selection instanceof AltNode) {
 					Dummy d = new Dummy();
@@ -213,7 +302,10 @@ public class RailroadPanel extends JPanel implements MouseListener, KeyListener,
 						}
 					}
 				}
+			} else if (c == 'x') {	// delete node
+				deleteSelection();
 			}
 		}
+		System.out.println ("State = " + state + "; action = " + action + "; Got key pressed; char = " + c + "; key code is " + ke.getKeyCode());
 	}
 }

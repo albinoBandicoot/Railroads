@@ -25,10 +25,13 @@ public class Dummy extends Node {
 
 		Point l = pipein.add (Settings.DUMMY_CONNECTOR_LENGTH, 0);
 		Point r = l.add (Settings.DUMMY_SIZE, 0);
+		/*
 		DrawUtils.line  (g, pipein, l);
 		DrawUtils.arrow (g, l, Settings.EAST);
 		DrawUtils.line  (g, r, r.add (Settings.DUMMY_CONNECTOR_LENGTH, 0));
 		DrawUtils.rect  (g, l.add (Settings.DUMMY_SIZE/2, 0), new Point (Settings.DUMMY_SIZE), 0, Settings.DUMMY_COLOR, false);
+		*/
+		DrawUtils.line (g, pipein, pipein.add (bounds.size.x, 0));
 
 		if (Settings.DRAW_BOUNDING_RECTS) {
 			g.setColor (Color.BLUE);

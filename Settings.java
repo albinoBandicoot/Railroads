@@ -20,7 +20,7 @@ public class Settings {
 	public static int LEAF_TEXT_PAD = 8;
 	public static int CONNECTOR_LENGTH = 15;	// minimum; really double this b/c each node will do one.
 												// dummy nodes may shorten this to save space & look dumber
-	public static int DUMMY_CONNECTOR_LENGTH = 15;
+	public static int DUMMY_CONNECTOR_LENGTH = 0;
 	public static int BRANCH_SPACING = 15;
 	public static int TOPLEVEL_Y_SPACING = 40;
 

@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 import java.awt.*;
-public class LoopNode extends Node {
+public class LoopNode extends InternalNode {
 
 
 	/*  
@@ -57,6 +57,22 @@ public class LoopNode extends Node {
 		}
 		if (is_selected) Railroad.rp.selection = this;
 		return is_selected || child_sel;
+	}
+
+	public void  setSelection (Node s) {
+		super.setSelection (s);
+		top.setSelection (s);
+		bot.setSelection (s);
+	}
+
+	public Node getNextNode (Node sel) {
+		if (sel == top) return bot;
+		return sel;
+	}
+
+	public Node getPreviousNode (Node sel) {
+		if (sel == bot) return top;
+		return sel;
 	}
 
 	public void clearName () {
