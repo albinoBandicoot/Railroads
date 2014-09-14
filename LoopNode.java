@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 import java.awt.*;
-public class LoopNode extends InternalNode {
+public class LoopNode extends InternalNode implements SequentiallySelectable {
 
 
 	/*  
@@ -28,21 +28,31 @@ public class LoopNode extends InternalNode {
 	 * A ::= TOP A
 	*/
 
-	public Node top;
-	public Node bot;
+	public ConcatNode top;
+	public ConcatNode bot;
 
 	private int midwidth;
 	private int bottomy;
 
 	public LoopNode (Nonterminal n, Node top, Node bot) {
 		super ((Symbol) n);
-		this.top = top;
-		this.bot = bot;
 		if (top == null) {
-			this.top = new Dummy();
+			this.top = new ConcatNode (null);
+		} else if (top instanceof InternalNode) {
+			ConcatNode ct = new ConcatNode (null, (InternalNode) top);
+			top.parent = ct;
+			this.top = ct;
+		} else {
+			this.top = (ConcatNode) top;
 		}
 		if (bot == null) {
-			this.bot = new Dummy();
+			this.bot = new ConcatNode(null);
+		} else if (bot instanceof InternalNode) {
+			ConcatNode cb = new ConcatNode (null, (InternalNode) bot);
+			bot.parent = cb;
+			this.bot = cb;
+		} else {
+			this.bot = (ConcatNode) bot;
 		}
 		top.parent = this;
 		bot.parent = this;
@@ -85,8 +95,8 @@ public class LoopNode extends InternalNode {
 		if (n == null) {
 			n = new Nonterminal (parent.n.name + "_LOOP");
 		}
-		if (! (top instanceof Dummy || top instanceof LeafNode)) top.n = new Nonterminal (n.name + "_TOP");
-		if (! (bot instanceof Dummy || bot instanceof LeafNode)) bot.n = new Nonterminal (n.name + "_BOT");
+		if (!top.isEffectivelyEmpty()) top.n = new Nonterminal (n.name + "_TOP");
+		if (!bot.isEffectivelyEmpty()) bot.n = new Nonterminal (n.name + "_BOT");
 		top.computeName ();	// for the children of top.
 		bot.computeName ();
 	}
@@ -140,10 +150,19 @@ public class LoopNode extends InternalNode {
 
 	public void replace (Node ch, Node n) {
 		n.parent = this;
+		ConcatNode cn = null;
+		if (n instanceof InternalNode) {
+			ConcatNode wrapper = new ConcatNode (null, (InternalNode) n);
+			n.parent = wrapper;
+			wrapper.parent = this;
+			cn = wrapper;
+		} else {
+			cn = (ConcatNode) n;
+		}
 		if (ch == top) {
-			top = n;
+			top = cn;
 		} else if (ch == bot) {
-			bot = n;
+			bot = cn;
 		} else {
 			System.out.println ("Trying to replace nonexistent child of LoopNode");
 		}
@@ -151,9 +170,9 @@ public class LoopNode extends InternalNode {
 
 	public ArrayList<Production> generateProductions () {
 		ArrayList<Production> res = new ArrayList<Production>();
-		if (top instanceof Dummy) {
+		if (top.isEffectivelyEmpty()) {
 			res.add (new Production (n));
-			if (bot instanceof Dummy) {
+			if (bot.isEffectivelyEmpty()) {
 				// then this is just A ::= e, which we already added
 			} else {
 				// A ::= e
@@ -162,7 +181,7 @@ public class LoopNode extends InternalNode {
 				res.add (bot_a);
 			}
 		} else {
-			if (bot instanceof Dummy) {
+			if (bot.isEffectivelyEmpty()) {
 				// A ::= TOP
 				// A ::= TOP A
 				res.add (new Production (n, top.n));

@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 import java.awt.*;
-public class LeafNode extends Node {
+public class LeafNode extends InternalNode {
 
 	public LeafNode (Symbol sym) {
 		super (sym);

@@ -187,17 +187,21 @@ public class RailroadPanel extends JPanel implements MouseListener, KeyListener,
 		char c = ke.getKeyChar();
 		int code = ke.getKeyCode();
 		if (code == KeyEvent.VK_UP) {
+			/*
 			if (selection.parent instanceof ConcatNode) {
 				if (selection.parent.parent instanceof InternalNode) {
 					setSelection (((InternalNode) selection.parent.parent).getPreviousNode (selection));
 				}
 			}
+			*/
 		} else if (code == KeyEvent.VK_DOWN) {
+			/*
 			if (selection.parent instanceof ConcatNode) {
 				if (selection.parent.parent instanceof InternalNode) {
 					setSelection (((InternalNode) selection.parent.parent).getNextNode (selection));
 				}
 			}
+			*/
 		} else if (code == KeyEvent.VK_LEFT) {
 			if (selection.parent instanceof ConcatNode) {
 				setSelection (((ConcatNode) selection.parent).getPreviousNode (selection));
@@ -282,7 +286,7 @@ public class RailroadPanel extends JPanel implements MouseListener, KeyListener,
 				state = 5;
 			} else if (c == 'b') {	// add branch to selected alternation
 				if (selection instanceof AltNode) {
-					Dummy d = new Dummy();
+					ConcatNode d = new ConcatNode (null);	// do I need to add a dummy to this?
 					((AltNode) selection).options.add (d);
 					d.parent = selection;
 					repaint();
@@ -294,7 +298,7 @@ public class RailroadPanel extends JPanel implements MouseListener, KeyListener,
 							AltNode ch = (AltNode) selection;
 							AltNode par = (AltNode) selection.parent;
 							par.options.remove (ch);
-							for (Node x : ch.options) {
+							for (ConcatNode x : ch.options) {
 								x.parent = par;
 								par.options.add (x);
 							}

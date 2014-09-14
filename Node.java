@@ -32,15 +32,6 @@ public abstract class Node {
 	public abstract void	 clearName ();
 	public abstract void 	 computeName ();
 
-	public final char getTypeChar () {
-		if (this instanceof Dummy) return 'd';
-		if (this instanceof LeafNode) return 'f';
-		if (this instanceof LoopNode) return 'L';
-		if (this instanceof ConcatNode) return 'C';
-		if (this instanceof AltNode) return 'A';
-		return '?';
-	}
-
 	/* Painting rules:
 	 * - Paint only in your bounding rectangle
 	 * - Bounding rectangle is relative to the incoming pipe end

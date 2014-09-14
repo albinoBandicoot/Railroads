@@ -1,8 +1,8 @@
 import java.util.ArrayList;
 import java.awt.*;
-public class AltNode extends InternalNode {
+public class AltNode extends InternalNode implements SequentiallySelectable {
 
-	public ArrayList<Node> options;
+	public ArrayList<ConcatNode> options;
 
 	private ArrayList<Point> child_offsets;
 	private int collectorX;
@@ -11,17 +11,23 @@ public class AltNode extends InternalNode {
 
 	public AltNode (Nonterminal x) {
 		super (x);
-		options = new ArrayList<Node>();
+		options = new ArrayList<ConcatNode>();
 		child_offsets = new ArrayList<Point>();
 	}
 
 	public AltNode (Nonterminal x, Node... opts) {
 		super (x);
-		options = new ArrayList<Node>();
+		options = new ArrayList<ConcatNode>();
 		child_offsets = new ArrayList<Point>();
 		for (Node k : opts) {
-			options.add (k);
-			k.parent = this;
+			if (k instanceof ConcatNode) {
+				options.add ((ConcatNode) k);
+				k.parent =this;
+			} else {
+				ConcatNode c = new ConcatNode (null, (InternalNode) k);
+				options.add (c);
+				c.parent = this;
+			}
 		}
 	}
 
@@ -41,7 +47,7 @@ public class AltNode extends InternalNode {
 
 	public void setSelection (Node s) {
 		super.setSelection (s);
-		for (Node n : options) {
+		for (ConcatNode n : options) {
 			n.setSelection (s);
 		}
 	}
@@ -174,8 +180,14 @@ public class AltNode extends InternalNode {
 	public void replace (Node ch, Node n) {
 		for (int i=0; i < options.size(); i++) {
 			if (ch == options.get(i)) {
-				options.set (i, n);
-				n.parent = this;
+				if (n instanceof ConcatNode) {
+					options.set (i, (ConcatNode) n);
+					n.parent = this;
+				} else {
+					ConcatNode c = new ConcatNode (null, (InternalNode) n);
+					options.set (i, c);
+					c.parent = this;
+				}
 			}
 		}
 	}

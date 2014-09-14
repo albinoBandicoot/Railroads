@@ -1,8 +1,9 @@
 import java.awt.*;
 import java.util.ArrayList;
-public class Dummy extends Node {
+public class Dummy extends InternalNode {
 
 	public Dummy () {
+		super (null);
 	}
 
 	public boolean doSelection (Point p) {

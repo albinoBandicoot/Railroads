@@ -1,21 +1,21 @@
 import java.util.ArrayList;
 import java.awt.*;
-public class ConcatNode extends InternalNode {
+public class ConcatNode extends Node implements SequentiallySelectable {
 
-	public ArrayList<Node> list;
+	public ArrayList<InternalNode> list;
 	private ArrayList<Point> child_offsets;
 
 	public ConcatNode (Symbol n) {
 		super (n);
-		list = new ArrayList<Node>();
+		list = new ArrayList<InternalNode>();
 		child_offsets = new ArrayList<Point>();
 	}
 
-	public ConcatNode (Symbol n, Node... list) {
+	public ConcatNode (Symbol n, InternalNode... list) {
 		super (n);
-		this.list = new ArrayList<Node>();
+		this.list = new ArrayList<InternalNode>();
 		child_offsets = new ArrayList<Point>();
-		for (Node x : list) {
+		for (InternalNode x : list) {
 			this.list.add (x);
 			x.parent = this;
 		}
@@ -99,28 +99,39 @@ public class ConcatNode extends InternalNode {
 	}
 
 	public boolean isEffectivelyEmpty () {
-		return list.size() == 1 && list.get(0) instanceof Dummy;
+		return list.isEmpty() || list.size() == 1 && list.get(0) instanceof Dummy;
 	}
 
 	public void replace (Node ch, Node n) {
 		for (int i=0; i < list.size(); i++) {
 			if (ch == list.get(i)) {
-				list.set (i, n);
+				if (n instanceof ConcatNode) {
+					list.remove (i);
+					int w = i;
+					for (InternalNode in : ((ConcatNode) n).list) {
+						list.add (w, in);
+						w++;
+					}
+				} else {
+					list.set (i, (InternalNode) n);
+				}
 				n.parent = this;
 			}
 		}
-		flatten();
 	}
 
 	public void insert (Node sel, Node rep, int action) {
 		int idx = list.indexOf (sel);
 		rep.parent = this;
-		if (action == RailroadPanel.INSERT_BEFORE) {
-			list.add (idx, rep);
+		idx += action == RailroadPanel.INSERT_AFTER ? 1 : 0;
+		if (rep instanceof ConcatNode) {
+			int w = idx;
+			for (InternalNode in : ((ConcatNode) rep).list) {
+				list.add (w++, in);
+			}
 		} else {
-			list.add (idx+1, rep);
+			list.add (idx, (InternalNode) rep);
 		}
-		flatten();
 	}
 
 	public void remove (Node s) {
@@ -136,7 +147,6 @@ public class ConcatNode extends InternalNode {
 			d.parent = this;
 			list.add (d);
 		}
-		flatten();
 	}
 
 	public void collapseDummies () {
@@ -145,20 +155,6 @@ public class ConcatNode extends InternalNode {
 				list.remove (i);
 			}
 		}
-	}
-
-	public void flatten () {
-		for (int i = 0; i < list.size(); i++) {
-			if (list.get(i) instanceof ConcatNode) {
-				ConcatNode c = (ConcatNode) list.get(i);
-				list.remove (i);
-				for (Node n : c.list) {
-					n.parent = this;
-				}
-				list.addAll (i, c.list);
-			}
-		}
-		collapseDummies();
 	}
 
 	public ArrayList<Production> generateProductions () {

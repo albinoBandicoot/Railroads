@@ -4,7 +4,4 @@ public abstract class InternalNode extends Node {
 		super (s);
 	}
 
-	public abstract Node getNextNode (Node s);
-	public abstract Node getPreviousNode (Node s);
-
 }
