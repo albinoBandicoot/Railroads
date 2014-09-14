@@ -53,6 +53,7 @@ public class Lexer {
 				}
 			}
 		}
+		res.add (new Token (Terminal.EOF, ""));
 		return res;
 	}
 

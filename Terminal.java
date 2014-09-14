@@ -2,6 +2,8 @@ public class Terminal extends Symbol {
 
 	public String regex;
 
+	public static final Terminal EOF = new Terminal ("$");
+
 	public Terminal (String n) {
 		super(n);
 	}
