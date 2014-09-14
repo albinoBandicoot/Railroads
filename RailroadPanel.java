@@ -6,12 +6,14 @@ import java.util.ArrayList;
 public class RailroadPanel extends JPanel implements MouseListener, KeyListener, MouseWheelListener {
 
 	public ArrayList<Nonterminal> nonts;
+	public ArrayList<Terminal> terms;
 	public Node selection;
 
 	public int scrollx, scrolly;
 
 	public RailroadPanel () {
 		nonts = new ArrayList<Nonterminal>();
+		terms = new ArrayList<Terminal>();
 		Nonterminal start = new Nonterminal ("START");
 		start.definition = new ConcatNode (start, new Dummy());
 		nonts.add (start);
@@ -187,21 +189,19 @@ public class RailroadPanel extends JPanel implements MouseListener, KeyListener,
 		char c = ke.getKeyChar();
 		int code = ke.getKeyCode();
 		if (code == KeyEvent.VK_UP) {
-			/*
-			if (selection.parent instanceof ConcatNode) {
-				if (selection.parent.parent instanceof InternalNode) {
-					setSelection (((InternalNode) selection.parent.parent).getPreviousNode (selection));
+			if (selection.parent != null && selection.parent.parent instanceof SequentiallySelectable) {
+				Node newsel =((SequentiallySelectable) selection.parent.parent).getPreviousNode (selection.parent);
+				if (newsel instanceof ConcatNode) {
+					setSelection (((ConcatNode) newsel).list.get(0));
 				}
 			}
-			*/
 		} else if (code == KeyEvent.VK_DOWN) {
-			/*
-			if (selection.parent instanceof ConcatNode) {
-				if (selection.parent.parent instanceof InternalNode) {
-					setSelection (((InternalNode) selection.parent.parent).getNextNode (selection));
+			if (selection.parent != null && selection.parent.parent instanceof SequentiallySelectable) {
+				Node newsel =((SequentiallySelectable) selection.parent.parent).getNextNode (selection.parent);
+				if (newsel instanceof ConcatNode) {
+					setSelection (((ConcatNode) newsel).list.get(0));
 				}
 			}
-			*/
 		} else if (code == KeyEvent.VK_LEFT) {
 			if (selection.parent instanceof ConcatNode) {
 				setSelection (((ConcatNode) selection.parent).getPreviousNode (selection));
@@ -286,24 +286,22 @@ public class RailroadPanel extends JPanel implements MouseListener, KeyListener,
 				state = 5;
 			} else if (c == 'b') {	// add branch to selected alternation
 				if (selection instanceof AltNode) {
-					ConcatNode d = new ConcatNode (null);	// do I need to add a dummy to this?
+					ConcatNode d = new ConcatNode (null, new Dummy());	// do I need to add a dummy to this?
 					((AltNode) selection).options.add (d);
 					d.parent = selection;
 					repaint();
 				}
 			} else if (c == 'm') {	// merge selected nested alternation
 				if (selection instanceof AltNode) {
-					if (selection.parent != null) {
-						if (selection.parent instanceof AltNode) {
-							AltNode ch = (AltNode) selection;
-							AltNode par = (AltNode) selection.parent;
-							par.options.remove (ch);
-							for (ConcatNode x : ch.options) {
-								x.parent = par;
-								par.options.add (x);
-							}
-							repaint();
+					if (selection.parent != null && selection.parent.parent instanceof AltNode) {
+						AltNode ch = (AltNode) selection;
+						AltNode par = (AltNode) selection.parent.parent;
+						par.options.remove (ch.parent);
+						for (ConcatNode x : ch.options) {
+							x.parent = par;
+							par.options.add (x);
 						}
+						repaint();
 					}
 				}
 			} else if (c == 'x') {	// delete node

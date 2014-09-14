@@ -1,16 +1,14 @@
 public class Terminal extends Symbol {
 
 	public String regex;
-	public boolean keyword;
 
 	public Terminal (String n) {
 		super(n);
 	}
 
-	public Terminal (String n, String regex, boolean keyword) {
+	public Terminal (String n, String regex) {
 		super (n);
 		this.regex = regex;
-		this.keyword = keyword;
 	}
 
 	public String toString () {

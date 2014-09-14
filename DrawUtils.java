@@ -20,7 +20,7 @@ public class DrawUtils {
 		FontMetrics fm = grphx.getFontMetrics();
 		Rectangle2D rect = fm.getStringBounds (str, grphx);
 		int[] bounds = {(int) rect.getWidth(), (int) rect.getHeight()};
-		System.out.println ("rect.getHeight --> " + bounds[1] + "; fm.getHeight() --> " + fm.getHeight());
+		//System.out.println ("rect.getHeight --> " + bounds[1] + "; fm.getHeight() --> " + fm.getHeight());
 		//int[] bounds = {fm.stringWidth (str), fm.getHeight()};
 		return bounds;
 	}
