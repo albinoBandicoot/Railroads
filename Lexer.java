@@ -16,9 +16,11 @@ public class Lexer {
 	public Lexer (File f) throws FileNotFoundException{
 		Scanner sc = new Scanner (f);
 		terms = new ArrayList<Terminal>();
+		int i = 1;
 		while (sc.hasNextLine()) {
 			Scanner ls = new Scanner (sc.nextLine());
 			Terminal t = new Terminal (ls.next(), ls.next());
+			t.id = i++;
 			terms.add (t);
 			System.out.println ("Found terminal with name = " + t.name + "; regex = [" + t.regex + "]");
 		}

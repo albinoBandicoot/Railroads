@@ -1,14 +1,15 @@
 import java.util.ArrayList;
+import java.io.*;
 
 public class Parsegen {
 
 	public ItemSet grammar;
 	public Production start;
 	public ArrayList<ItemSet> isets;
-	private ArrayList<Nonterminal> nonts;
-	private ArrayList<Terminal> terms;
-	private int nterms;
-	private int tsize;
+	public ArrayList<Nonterminal> nonts;
+	public ArrayList<Terminal> terms;
+	public int nterms;
+	public int tsize;
 
 	public int precedence = Action.SHIFT;
 
@@ -163,7 +164,7 @@ public class Parsegen {
 		return sb.toString();
 	}
 
-	public static void main (String[] args) {
+	public static void main (String[] args) throws IOException {
 		Nonterminal S = new Nonterminal ("S");
 		Nonterminal E = new Nonterminal ("E");
 		Nonterminal B = new Nonterminal ("B");
@@ -182,6 +183,10 @@ public class Parsegen {
 		System.out.println ("The grammar is " + grammar);
 		Parsegen pg = new Parsegen (grammar, grammar.items.get(0));
 		pg.generateTable();
+
+		JavaWriter jw = new JavaWriter ();
+		jw.write (pg, new File ("./"));
+
 	}
 
 
