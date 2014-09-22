@@ -89,7 +89,7 @@ public class Parser {
 		System.out.println("]");
 	}
 
-	public Tree parse (String s) throws LexerException, ParserException  {
+	public Tree parse (String s) throws ParserException  {
 		ArrayList<Token> tokens = lexer.tokenize (s);
 		tokens = ParseUtils.filter (tokens);
 
@@ -98,7 +98,7 @@ public class Parser {
 			Token t = tokens.get(i);
 			System.out.println ("Looking at " + t + "; state = " + state.peek());
 
-			int col = t.term.id;
+			int col = t.id;
 			int action = table[state.peek()][col];
 			if (action == ACCEPT) {
 			}
@@ -150,7 +150,7 @@ public class Parser {
 		throw new ParserException ("Reached end of file before hitting ACCEPT");
 	}
 
-	public static void main (String[] args) throws ParserException, IOException, LexerException {
+	public static void main (String[] args) throws ParserException, IOException {
 		Parser p = new Parser (new File ("parsetable"), new File ("lexfile"));
 		p.parse ("1+0*1").print();
 	}

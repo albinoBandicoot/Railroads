@@ -94,9 +94,16 @@ public class LoopNode extends InternalNode implements SequentiallySelectable {
 	public void computeName () {
 		if (n == null) {
 			n = new Nonterminal (parent.n.name + "_LOOP");
+			n.autogen = true;
 		}
-		if (!top.isEffectivelyEmpty()) top.n = new Nonterminal (n.name + "_TOP");
-		if (!bot.isEffectivelyEmpty()) bot.n = new Nonterminal (n.name + "_BOT");
+		if (!top.isEffectivelyEmpty()) {
+			top.n = new Nonterminal (n.name + "_TOP");
+			top.n.autogen = true;
+		}
+		if (!bot.isEffectivelyEmpty()) {
+			bot.n = new Nonterminal (n.name + "_BOT");
+			bot.n.autogen = true;
+		}
 		top.computeName ();	// for the children of top.
 		bot.computeName ();
 	}

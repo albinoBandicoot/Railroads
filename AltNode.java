@@ -81,11 +81,13 @@ public class AltNode extends InternalNode implements SequentiallySelectable {
 	public void computeName () {
 		if (n == null) {
 			n = new Nonterminal (parent.n.name + "_ALT", this);
+			n.autogen = true;
 		}
 		int i = 1;
 		for (Node x : options) {
 			if (! (x instanceof Dummy || x instanceof LeafNode)) {
 				x.n = new Nonterminal (n.name + "_a" + i, x);
+				x.n.autogen = true;
 				x.computeName ();
 			}
 			i++;

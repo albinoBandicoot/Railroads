@@ -11,7 +11,20 @@ public class JavaWriter extends Writer {
 		 * for each production, how many trees to pop, and which symbol it has on its lhs
 		 * Treetype enum file
 		 * templates in parseUtils 
+		 *
+		 * Copy:
+		 * 
+		 * Tree.java
+		 * Token.java
+		 * Lexer.java
 		*/
+
+		copy (new File ("static/Tree.java"), dir);
+		copy (new File ("static/Token.java"), dir);
+		copy (new File ("static/Lexer.java"), dir);
+		copy (new File ("static/Parser.java"), dir);
+		copy (new File ("static/ParserException.java"), dir);
+		copy (new File ("Action.java"), dir);
 
 		File table_file = new File (dir.getCanonicalPath() + "/parsetable");
 		File treetype_file = new File (dir.getCanonicalPath() + "/Treetype.java");

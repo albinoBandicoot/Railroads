@@ -1,3 +1,4 @@
+import java.util.Scanner;
 import java.util.ArrayList;
 import java.io.*;
 
@@ -14,13 +15,19 @@ public class Parsegen {
 	public int precedence = Action.SHIFT;
 
 
-	public Parsegen (ItemSet gram, Production s) {
+	public Parsegen (ItemSet gram, Production s, File lexfile) throws IOException {
 		grammar = gram;
 		start = s;
 		isets = new ArrayList<ItemSet>();
 		isets.add (new ItemSet (start).closure(grammar));
 		nonts = new ArrayList<Nonterminal>();
 		terms = new ArrayList<Terminal>();
+		Scanner sc = new Scanner (lexfile);
+		int id = 1;
+		while (sc.hasNextLine()) {
+			Scanner ls = new Scanner (sc.nextLine());
+			terms.add (new Terminal (ls.next(), id++));
+		}
 	}
 
 	public int find (ItemSet is) {
@@ -36,22 +43,15 @@ public class Parsegen {
 		return nonts.get (i-nterms);
 	}
 
-	public void findSymbols () {
+	public void findNonterminals () {
 		nonts.clear();
-		terms.clear();
-		terms.add (Terminal.EOF);
 		for (Production p : grammar.items) {
 			if (!nonts.contains (p.sym)) {
 				p.sym.id = nonts.size();
 				nonts.add ((Nonterminal) p.sym);
 			}
 			for (Symbol s : p.rule) {
-				if (s instanceof Terminal) {
-					if (!terms.contains (s)) {
-						s.id = terms.size();
-						terms.add ((Terminal) s);
-					}
-				} else if (s instanceof Nonterminal) {
+				if (s instanceof Nonterminal) {
 					if (!nonts.contains (s)) {
 						s.id = nonts.size();
 						nonts.add ((Nonterminal) s);
@@ -69,7 +69,7 @@ public class Parsegen {
 	}
 
 	public void generateTable () {
-		findSymbols();
+		findNonterminals();
 		/* The first column of the action table will be for the special $ (EOF) symbol.
 		 * The next columns will be for the terminals, then for the nonterminals.
 		 * Each row corresponds to an item set, and is stored as an array of actions
@@ -168,10 +168,10 @@ public class Parsegen {
 		Nonterminal S = new Nonterminal ("S");
 		Nonterminal E = new Nonterminal ("E");
 		Nonterminal B = new Nonterminal ("B");
-		Terminal zero = new Terminal ("0");
-		Terminal one = new Terminal ("1");
-		Terminal plus = new Terminal ("+");
-		Terminal times = new Terminal ("*");
+		Terminal zero = new Terminal ("0", 1);
+		Terminal one = new Terminal ("1", 2);
+		Terminal plus = new Terminal ("+", 3);
+		Terminal times = new Terminal ("*", 4);
 		ItemSet grammar = new ItemSet ();
 		grammar.items.add (new Production (S, E));
 		grammar.items.add (new Production (E, E, times, B));
@@ -181,11 +181,11 @@ public class Parsegen {
 		grammar.items.add (new Production (B, zero));
 
 		System.out.println ("The grammar is " + grammar);
-		Parsegen pg = new Parsegen (grammar, grammar.items.get(0));
+		Parsegen pg = new Parsegen (grammar, grammar.items.get(0), new File(args[0]));
 		pg.generateTable();
 
 		JavaWriter jw = new JavaWriter ();
-		jw.write (pg, new File ("./"));
+		jw.write (pg, new File ("test/"));
 
 	}
 

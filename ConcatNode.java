@@ -59,11 +59,13 @@ public class ConcatNode extends Node implements SequentiallySelectable {
 	public void computeName () {
 		if (n == null) {
 			n = new Nonterminal (parent.n.name + "_C", this);
+			n.autogen = true;
 		}
 		int i = 1;
 		for (Node x : list) {
 			if (! (x instanceof Dummy || x instanceof LeafNode)) {
 				x.n = new Nonterminal (n.name + "_c" + i, x);
+				x.n.autogen = true;
 				x.computeName ();
 			}
 			i++;
